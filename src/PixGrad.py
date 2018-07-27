@@ -71,24 +71,5 @@ class SobelDirection(SobelBase):
 
     # def cmp_grad is prepared.
 
-    
 if __name__ == '__main__':
-    """
-    test code
-    """
-    # sobel = Sobel(3, 'x')
-    # sobel = SobelGratitude(5)
-    sobel = SobelDirection(5)
-    images = glob.glob('./calib/*.jpg')
-    img = cv2.imread(images[0])
-
-    binary = sobel.cmp_grad(img, 0.6, 1.3)
-
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    f.tight_layout()
-    ax1.imshow(img)
-    ax1.set_title('Original Image', fontsize=50)
-    ax2.imshow(binary, cmap='gray')
-    ax2.set_title('Thresholded Gradient', fontsize=50)
-    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-    plt.savefig('test.jpg')
+    from CameraCalib import CameraCalib
