@@ -70,8 +70,8 @@ class CameraCalib(object):
     
     def import_calib(self, file_name):
         dist_pickle = pickle.load( open( file_name, "rb" ) )
-        mtx = dist_pickle["mtx"]
-        dist = dist_pickle["dist"]
+        self.mtx = dist_pickle["mtx"]
+        self.dist = dist_pickle["dist"]
     
     def export_calib(self, file_name):
         """
@@ -88,8 +88,7 @@ test code
 if __name__ == '__main__':
     cam_calib = CameraCalib(9,6)
     images = glob.glob('../camera_cal/calibration*.jpg')
-    images.extend(glob.glob('../test_images/*.jpg'))
-    print(images)
+    # print(images)
 
     for idx, fname in enumerate(images):
         img = cam_calib.project_img_file(fname)
@@ -98,6 +97,7 @@ if __name__ == '__main__':
 
     cam_calib.calibrate()
     cam_calib.export_calib("calibration_pickle.p")
+    images.extend(glob.glob('../test_images/*.jpg'))
 
     for idx, fname in enumerate(images):
         img = cam_calib.undist_img_file(fname)
