@@ -1,7 +1,7 @@
 """
 Detects Line used for Lane Definition 
 """
-from LineCollection import LineCurvature, LinePolynomial, Line
+from LineCollection import LinePolynomial, Line
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg

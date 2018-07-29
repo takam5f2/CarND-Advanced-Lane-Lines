@@ -8,6 +8,9 @@ import cv2
 import copy
 
 class LinePolynomial(object):
+    """
+    This is line polynomial whose order is 2
+    """
     def __init__(self, order=2):
         self._order = order
         self.fit_coef = None
@@ -39,30 +42,21 @@ class LineCurvature(object):
         self._ym_per_pix = ym_per_pix
         self._xm_per_pix = xm_per_pix
         # result
-        self._leftpoly_pix = LinePolynomial()
-        self._rightpoly_pix = LinePolynomial()
-        self._leftpoly_real = LinePolynomial()
-        self._rightpoly_real = LinePolynomial()
-        self.left_curverad_pix   = 0
-        self.right_curverad_pix  = 0
-        self.left_curverad_real  = 0
-        self.right_curverad_real = 0
+        self.curverad_pix   = 0
+        self.curverad_real  = 0
 
     def _set_plot(self, ploty, plotx, poly_pix, poly_real):
         poly_pix.fit(ploty, plotx)
         poly_real.fit(ploty*self._ym_per_pix, plotx*self._xm_per_pix)
+        return poly_pix, poly_real
         
-    def set_left(self, binary_warped, lefty, leftx):
-        self._set_plot(lefty, leftx, self._leftpoly_pix, self._leftpoly_real)
-        self.left_curverad_pix = self._leftpoly_pix.get_curverad(max(lefty))
+    def set_plot(self, binary_warped, ploty, plotx):
+        linepoly_pix = LinePolynomial()
+        linepoly_real = LinePolynomial()
+        poly_pix, poly_real = self._set_plot(ploty, plotx, linepoly_pix, linepoly_real)
+        self.curverad_pix = linepoly_pix.get_curverad(max(ploty))
         ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
-        self.left_curverad_real = self._leftpoly_real.get_curverad(max(ploty)*self._ym_per_pix)
-
-    def set_right(self, binary_warped, righty, rightx):
-        self._set_plot(righty, rightx, self._rightpoly_pix, self._rightpoly_real)
-        self.right_curverad_pix = self._rightpoly_pix.get_curverad(max(righty))
-        ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
-        self.right_curverad_real = self._rightpoly_real.get_curverad(max(ploty)*self._ym_per_pix)
+        self.curverad_real = linepoly_real.get_curverad(max(ploty)*self._ym_per_pix)
 
 class Line(object):
     """
@@ -94,7 +88,6 @@ class Line(object):
         self.allx = None  
         #y values for detected line pixels
         self.ally = None
-        
 
     def _update_line_data(self, detected, binary_warped,
                           detectx, detecty, curvature):

@@ -47,14 +47,28 @@ def sanity_check_parallel(binary_warped, leftpoly, rightpoly):
         return True
     return False
     
-def sanity_check(binary_warped, leftpoly, rightpoly, line_curve):
+def sanity_check(binary_warped, leftpoly, rightpoly, left_curve, right_curve):
     counter = 0
-    counter +=  sanity_check_curvature(line_curve.left_curverad_real, line_curve.right_curverad_real)
+    counter +=  sanity_check_curvature(left_curve.curverad_real, right_curve.curverad_real)
     counter += sanity_check_distance(binary_warped, leftpoly, rightpoly)
     counter += sanity_check_parallel(binary_warped, leftpoly, rightpoly)
     if counter >= 2:
         return True
     return False
+
+def get_line_curvature(binary_warped, ploty, plotx):
+    line_curvature = LineCurvature()
+    line_curvature.set_plot(out_img, ploty, plotx)
+    return line_curvature.curverad_real
+
+def get_lane_curvature(binary_warped, leftpoly, rightpoly):
+    ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
+    left_fitx = leftpoly.deduce(ploty)
+    right_fitx = rightpoly.deduce(ploty)
+    lane_fitx = (left_fitx + right_fitx) / 2
+    lane_curvature = LineCurvature()
+    lane_curvature.set_plot(binary_warped, ploty, lane_fitx)
+    return lane_curvature.curverad_real
 
 class LaneDetectionPipeline(object):
     """
@@ -87,7 +101,10 @@ class LaneDetectionPipeline(object):
         # Line Detection
         self.line_detection = LineDetection(margin=50)
 
-    def _draw_lane_to_image(self, undist_img, binary_warped, left_fitx, right_fitx, ploty):
+    def _draw_lane_to_image(self, undist_img, binary_warped, leftpoly, rightpoly):
+        ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
+        left_fitx = leftpoly.deduce(ploty)
+        right_fitx = rightpoly.deduce(ploty)
         # Create an image to draw the lines on
         warp_zero = np.zeros_like(binary_warped).astype(np.uint8)
         color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
@@ -119,18 +136,20 @@ class LaneDetectionPipeline(object):
         leftx, lefty, rightx, righty = self.line_detection.search_around_poly(out_img, leftpoly, rightpoly)
         leftpoly.fit(lefty, leftx)
         rightpoly.fit(righty, rightx)
-        line_curve = LineCurvature()
-        line_curve.set_left(out_img, lefty, leftx) 
-        line_curve.set_right(out_img, righty, rightx)
-        ploty = np.linspace(0, out_img.shape[0]-1, out_img.shape[0])
-        left_fitx = leftpoly.deduce(ploty)
-        right_fitx = rightpoly.deduce(ploty)
-        
-        out_img = self._draw_lane_to_image(undist_img, out_img, left_fitx, right_fitx, ploty)
+
+        left_curve = LineCurvature()
+        right_curve = LineCurvature()
+        left_curve.set_plot(out_img, lefty, leftx) 
+        right_curve.set_plot(out_img, righty, rightx)
+        # get curvature
+        curvature = get_lane_curvature(out_img, leftpoly, rightpoly)
+        curvature_disp = "Curvature: {}".format(curvature)
+
+        out_img = self._draw_lane_to_image(undist_img, out_img, leftpoly, rightpoly)
+        cv2.putText(out_img, curvature_disp, (200, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), thickness=2)
         return out_img
 
     def process_img_movie(self, src_img):
-        line_curvature = LineCurvature()
         undist_img = self.cam_calib.undist_img(src_img)
         out_img = self.edge_detection.execute(undist_img)
         out_img = self.perspec_trans.warp_img(out_img)
@@ -141,25 +160,45 @@ class LaneDetectionPipeline(object):
             leftx, lefty, rightx, righty = self.line_detection.find_lane_pixels(out_img)
         self.left.linepoly.fit(lefty, leftx)
         self.right.linepoly.fit(righty, rightx)
-        line_curvature.set_left(out_img, lefty, leftx)
-        line_curvature.set_right(out_img, righty, rightx)
-        detected = sanity_check(out_img, self.left.linepoly, self.right.linepoly, line_curvature)
+        left_curve = LineCurvature()
+        right_curve = LineCurvature()
+        left_curve.set_plot(out_img, lefty, leftx) 
+        right_curve.set_plot(out_img, righty, rightx)
+        detected = sanity_check(out_img, self.left.linepoly, self.right.linepoly, left_curve, right_curve)
         self.left.update_lines(detected, out_img, leftx, lefty,
-                               line_curvature.left_curverad_real)
+                               left_curve.curverad_real)
         self.right.update_lines(detected, out_img, rightx, righty,
-                               line_curvature.right_curverad_real)
-        
+                               right_curve.curverad_real)
+        left_fitx = None
+        right_fitx = None
+        ploty = np.linspace(0, out_img.shape[0]-1, out_img.shape[0])
         if detected == False:
             if len(self.left.recent_xfitted) > 0:
                 left_fitx = self.left.recent_xfitted[-1]
+            else:
+                interpolatepoly = LinePolynomial()
+                interpolatepoly.fit_coef = self.left.current_fit
+                left_fitx = interpolatepoly.deduce(ploty)
             if len(self.right.recent_xfitted) > 0:
                 right_fitx = self.right.recent_xfitted[-1]
+            else:
+                interpolatepoly = LinePolynomial()
+                interpolatepoly.fit_coef = self.right.current_fit
+                right_fitx = interpolatepoly.deduce(ploty)
         else:
             left_fitx = self.left.recent_xfitted[-1]
             right_fitx = self.right.recent_xfitted[-1]
-        ploty = np.linspace(0, out_img.shape[0]-1, out_img.shape[0])
-        out_img = self._draw_lane_to_image(undist_img, out_img,
-                                           left_fitx, right_fitx, ploty)
+        leftpoly = LinePolynomial()
+        leftpoly.fit(ploty, left_fitx)
+        rightpoly = LinePolynomial()
+        rightpoly.fit(ploty, right_fitx)
+        # get curvature
+        curvature = get_lane_curvature(out_img, leftpoly, rightpoly)
+        curvature_disp = "Curvature: {}".format(curvature)
+        
+        out_img = self._draw_lane_to_image(undist_img, out_img, leftpoly, rightpoly)
+        cv2.putText(out_img, curvature_disp, (200, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), thickness=2)
+
         return out_img
         
 if __name__ == '__main__':
