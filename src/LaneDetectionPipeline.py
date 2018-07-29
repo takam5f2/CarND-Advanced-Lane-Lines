@@ -77,7 +77,6 @@ class LaneDetectionPipeline(object):
         # Edge Detection with gradient and color space
         self.edge_detection = EdgeDetection()
         # add function
-        # self.edge_detection.add_func(Sobel(5, 30, 100, 'x'))
         self.edge_detection.add_func(Sobel(7, 20, 120, 'x'))
         self.edge_detection.add_func(SobelGratitude(5, 70, 100))
         self.edge_detection.add_func(AbstHLSElement(160, 255, 'S'))
