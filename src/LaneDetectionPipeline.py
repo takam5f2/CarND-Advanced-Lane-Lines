@@ -82,10 +82,6 @@ class LaneDetectionPipeline(object):
         self.edge_detection.add_func(SobelGratitude(5, 70, 100))
         self.edge_detection.add_func(AbstHLSElement(160, 255, 'S'))
         # Perspective Transformation
-        # src_range = np.float32([[550, 470], [220, 680], [1150, 680], [750, 470]])
-        # dst_range = np.float32([[200, 0], [200, 700], [1100, 700], [1100,100]])
-        # src_range = np.float32([[540, 480], [220, 700], [1140, 700], [760, 480]])
-        # dst_range = np.float32([[180, 0], [180, 700], [1100, 700], [1100,100]])
         src_range = np.float32([[550, 470], [200, 700], [1100, 700], [750, 470]])
         dst_range = np.float32([[180, 0], [180, 700], [1100, 700], [1100, 0]])
         self.perspec_trans = PerspectiveTransform(src_range, dst_range)

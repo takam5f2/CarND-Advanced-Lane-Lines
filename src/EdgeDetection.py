@@ -17,7 +17,7 @@ class EdgeDetection(object):
 
     def execute(self, img):
         ret_binary = np.zeros_like(img[:,:,0])
-        if len(self._pipeline) == 1:
+        if len(self._pipeline) == 0:
             return 
         for idx, func in enumerate(self._pipeline):
             func_ret = func.cmp_thres(img)

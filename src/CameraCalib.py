@@ -51,7 +51,7 @@ class CameraCalib(object):
         return img
     
 
-    def _undist_img(self, img):
+    def undist_img(self, img):
         dst = cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
         return dst
 
@@ -66,7 +66,7 @@ class CameraCalib(object):
                                                                      img_size, None, None)
     def undist_img_file(self, file_name):
         img = cv2.imread(file_name)
-        return self._undist_img(img)
+        return self.undist_img(img)
     
     def import_calib(self, file_name):
         dist_pickle = pickle.load( open( file_name, "rb" ) )
