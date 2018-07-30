@@ -1,39 +1,56 @@
 ## Advanced Lane Finding
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
+In this project, my pipeline for lane detection is designed. Details about my project is shown in the [writeup](https://github.com/takam5f2/CarND-Advanced-Lane-Lines/blob/master/writeup.md) Scope of my project is to apply my pipeline to [project_video.mp4](./project_video.mp4). Now I've excluded change video, but I will try them after first submission.
 
-In this project, your goal is to write a software pipeline to identify the lane boundaries in a video, but the main output or product we want you to create is a detailed writeup of the project.  Check out the [writeup template](https://github.com/udacity/CarND-Advanced-Lane-Lines/blob/master/writeup_template.md) for this project and use it as a starting point for creating your own writeup.  
-
-Creating a great writeup:
+Important Directory and Files:
 ---
-A great writeup should include the rubric points as well as your description of how you addressed each point.  You should include a detailed description of the code used in each step (with line-number references and code snippets where necessary), and links to other supporting documents or external references.  You should include images in your writeup to demonstrate how your code works with examples.  
+Important files and directory is:
+* writeup.md: it describe how I implemented my pipeline
+* src/: this directory includes the source code of my pipeline
+* output_images/: this directory includes the result picture of lane detection
+* src/project_video_after_lane_detection.mp4: The movie which was generated withapplying my lane detection pipeline to [project_video.mp4](./project_video.mp4).
 
-All that said, please be concise!  We're not looking for you to write a book here, just a brief description of how you passed each rubric point, and references to the relevant code :). 
+src/ directory has several files as follows.
 
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup.
+* apply_pipeline_movies.py
+If you execute this, the movie will be generated
+* LaneDetectionPipeline.py
+Construction of Lane Detection Pipeline, and it is my pipeline
+* LineCollection.py
+It includes definition of class for express line data
+* CameraCalib.py
+Camera Calibration class is defined in this file, and it can use existing calibration parameter file called "calibration_pickle.p"
+* EdgeDetection.py
+Sub pipeline for edge detection with using Sobel and Color space conversion
+* SobelCollection.py
+The class definitions of Sobel function, SobelGratitude, and SobelDirection are described in this file
+* ColorElementCollection.py
+The class for abstracting color space is defined in this source file
+* PerspectiveTransform.py
+This include definition of class for perspective transformation.
+* LineDetection.py
+This source file includes the class and function(method) to detect both left and right line with using histogram and fitting(linear regression)
 
-The Project
+Report
 ---
+Please check [writeup](https://github.com/takam5f2/CarND-Advanced-Lane-Lines/blob/master/writeup.md)
+If you are interested in movies including result of detection, please watch at [src/project_video_after_lane_detection.mp4](./src/project_video_after_lane_detection.mp4)
 
-The goals / steps of this project are the following:
 
-* Compute the camera calibration matrix and distortion coefficients given a set of chessboard images.
-* Apply a distortion correction to raw images.
-* Use color transforms, gradients, etc., to create a thresholded binary image.
-* Apply a perspective transform to rectify binary image ("birds-eye view").
-* Detect lane pixels and fit to find the lane boundary.
-* Determine the curvature of the lane and vehicle position with respect to center.
-* Warp the detected lane boundaries back onto the original image.
-* Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
+Execution
+---
+clone my project
+$ git clone https://github.com/takam5f2/CarND-Advanced-Lane-Lines.git
 
-The images for camera calibration are stored in the folder called `camera_cal`.  The images in `test_images` are for testing your pipeline on single frames.  If you want to extract more test images from the videos, you can simply use an image writing method like `cv2.imwrite()`, i.e., you can read the video in frame by frame as usual, and for frames you want to save for later you can write to an image file.  
+execution area is defined as src/ direction
+$ cd src/
 
-To help the reviewer examine your work, please save examples of the output from each stage of your pipeline in the folder called `output_images`, and include a description in your writeup for the project of what each image shows.    The video called `project_video.mp4` is the video your pipeline should work well on.  
+if you get pictures whose lane was detected by using my pipeline
+$ python LaneDetectionPipeline.py
 
-The `challenge_video.mp4` video is an extra (and optional) challenge for you if you want to test your pipeline under somewhat trickier conditions.  The `harder_challenge.mp4` video is another optional challenge and is brutal!
+After execution, the generated pictures are located on output_images directory.
 
-If you're feeling ambitious (again, totally optional though), don't stop there!  We encourage you to go out and take video of your own, calibrate your camera and show us how you would implement this project from scratch!
+if you get movies whose lane was detected by using my pipeline
+$ python apply_pipeline_movies.py
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
+after execution, [src/project_video_after_lane_detection.mp4](./src/project_video_after_lane_detection.mp4) appears
