@@ -86,6 +86,7 @@ class CameraCalib(object):
 test code
 '''        
 if __name__ == '__main__':
+    import matplotlib.image as mpimg
     cam_calib = CameraCalib(9,6)
     images = glob.glob('../camera_cal/calibration*.jpg')
     # print(images)
@@ -100,8 +101,18 @@ if __name__ == '__main__':
     images.extend(glob.glob('../test_images/*.jpg'))
 
     for idx, fname in enumerate(images):
+        org_img = mpimg.imread(fname)
         img = cam_calib.undist_img_file(fname)
-        write_name = './calib/calib{}.jpg'.format(idx)
-        cv2.imwrite(write_name, img)
+        outfile = './calib/post_calib_comparisno_{}.png'.format(idx)
+        f, ax = plt.subplots(1, 2, figsize=(30, 12))
+        f.tight_layout()
+
+        ax[0].imshow(org_img)
+        ax[0].set_title('Original', fontsize=30)
+        ax[1].imshow(img)
+        ax[1].set_title('Undistorted', fontsize=30)
+        plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.0)
+        plt.savefig(outfile)
+
 
     
