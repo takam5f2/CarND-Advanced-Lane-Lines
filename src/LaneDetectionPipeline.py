@@ -121,6 +121,12 @@ class LaneDetectionPipeline(object):
         newwarp = self.perspec_trans.reverse_img(color_warp)
         # Combine the result with the original image
         result = cv2.addWeighted(undist_img, 1, newwarp, 0.3, 0)
+
+        # add curvature information to image
+        # calculates center of lane's curvature
+        curvature = get_lane_curvature(result, leftpoly, rightpoly)
+        curvature_disp = "Curvature: {}".format(curvature)
+        cv2.putText(result, curvature_disp, (200, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), thickness=2)
         return result
         
     def process_image_pic(self, src_img):
@@ -142,29 +148,34 @@ class LaneDetectionPipeline(object):
         left_curve.set_plot(out_img, lefty, leftx) 
         right_curve.set_plot(out_img, righty, rightx)
         # get curvature
-        curvature = get_lane_curvature(out_img, leftpoly, rightpoly)
-        curvature_disp = "Curvature: {}".format(curvature)
 
         out_img = self._draw_lane_to_image(undist_img, out_img, leftpoly, rightpoly)
-        cv2.putText(out_img, curvature_disp, (200, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), thickness=2)
         return out_img
-
+    
     def process_img_movie(self, src_img):
+        # camera calibration, edge_detection, perspective transformation.
         undist_img = self.cam_calib.undist_img(src_img)
         out_img = self.edge_detection.execute(undist_img)
         out_img = self.perspec_trans.warp_img(out_img)
+        # if lane detection succeeded at last cycle, fitting only used for finding lane in this cycle
+        # but otherwise uses histogram based approach
+        # here, all pixels around the line are detected.
         if self.left.detected == True and self.right.detected == True:
             leftx, lefty, rightx, righty = self.line_detection.search_around_poly(out_img,
                                                                                   self.left.linepoly, self.right.linepoly)
         else:
             leftx, lefty, rightx, righty = self.line_detection.find_lane_pixels(out_img)
+        # 
         self.left.linepoly.fit(lefty, leftx)
         self.right.linepoly.fit(righty, rightx)
+        # calculate curvature of both right line and left line
         left_curve = LineCurvature()
         right_curve = LineCurvature()
         left_curve.set_plot(out_img, lefty, leftx) 
         right_curve.set_plot(out_img, righty, rightx)
+        # sanity check execution such as curvature, distance and 
         detected = sanity_check(out_img, self.left.linepoly, self.right.linepoly, left_curve, right_curve)
+        # update line detection information
         self.left.update_lines(detected, out_img, leftx, lefty,
                                left_curve.curverad_real)
         self.right.update_lines(detected, out_img, rightx, righty,
@@ -172,6 +183,8 @@ class LaneDetectionPipeline(object):
         left_fitx = None
         right_fitx = None
         ploty = np.linspace(0, out_img.shape[0]-1, out_img.shape[0])
+        # if detected line does not exist, uses recent_xfitted
+        # if recent_xfitted does not exist, current_fit will be used for substitution(giving up).
         if detected == False:
             if len(self.left.recent_xfitted) > 0:
                 left_fitx = self.left.recent_xfitted[-1]
@@ -186,18 +199,16 @@ class LaneDetectionPipeline(object):
                 interpolatepoly.fit_coef = self.right.current_fit
                 right_fitx = interpolatepoly.deduce(ploty)
         else:
+            # get fresh fitted data
             left_fitx = self.left.recent_xfitted[-1]
             right_fitx = self.right.recent_xfitted[-1]
+        # fitting again
         leftpoly = LinePolynomial()
         leftpoly.fit(ploty, left_fitx)
         rightpoly = LinePolynomial()
         rightpoly.fit(ploty, right_fitx)
-        # get curvature
-        curvature = get_lane_curvature(out_img, leftpoly, rightpoly)
-        curvature_disp = "Curvature: {}".format(curvature)
-        
+        # draw lane to image
         out_img = self._draw_lane_to_image(undist_img, out_img, leftpoly, rightpoly)
-        cv2.putText(out_img, curvature_disp, (200, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), thickness=2)
 
         return out_img
         
@@ -211,13 +222,11 @@ if __name__ == '__main__':
         img = mpimg.imread(fname)
         out_img = lane_detect_pipeline.process_image_pic(img)
         # output image
-        outfname = 'pipe_pict/result_{}.jpg'.format(idx)
-        f, ax = plt.subplots(1, 2, figsize=(30, 12))
+        outfname = '../output_images/detect_lane_{}.jpg'.format(idx)
+        f, ax = plt.subplots(1, 1, figsize=(30, 12))
         f.tight_layout()
-        ax[0].imshow(img)
-        ax[0].set_title('Original', fontsize=30)
-        ax[1].imshow(out_img)
-        ax[1].set_title('Post Processing', fontsize=30)
+        ax.imshow(out_img)
+        ax.set_title('Post Processing', fontsize=30)
         plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
         plt.savefig(outfname)
         
