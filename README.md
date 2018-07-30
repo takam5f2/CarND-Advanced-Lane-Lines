@@ -15,26 +15,27 @@ Important files and directory is:
 * src/project_video_after_lane_detection.mp4
 ** The movie which was generated withapplying my lane detection pipeline to [project_video.mp4](./project_video.mp4).
 
+
 src/ directory has several files as follows.
 
 * apply_pipeline_movies.py
-** If you execute this, the movie will be generated
+  * If you execute this, the movie will be generated
 * LaneDetectionPipeline.py
-** Construction of Lane Detection Pipeline, and it is my pipeline
+  * Construction of Lane Detection Pipeline, and it is my pipeline
 * LineCollection.py
-** It includes definition of class for express line data
+  * It includes definition of class for express line data
 * CameraCalib.py
-** Camera Calibration class is defined in this file, and it can use existing calibration parameter file called "calibration_pickle.p"
+  * Camera Calibration class is defined in this file, and it can use existing calibration parameter file called "calibration_pickle.p"
 * EdgeDetection.py
-** Sub pipeline for edge detection with using Sobel and Color space conversion
+  * Sub pipeline for edge detection with using Sobel and Color space conversion
 * SobelCollection.py
-** The class definitions of Sobel function, SobelGratitude, and SobelDirection are described in this file
+  * The class definitions of Sobel function, SobelGratitude, and SobelDirection are described in this file
 * ColorElementCollection.py
-** The class for abstracting color space is defined in this source file
+  * The class for abstracting color space is defined in this source file
 * PerspectiveTransform.py
-** This include definition of class for perspective transformation.
+  * This include definition of class for perspective transformation.
 * LineDetection.py
-** This source file includes the class and function(method) to detect both left and right line with using histogram and fitting(linear regression)
+  * This source file includes the class and function(method) to detect both left and right line with using histogram and fitting(linear regression)
 
 Report
 ---
