@@ -19,8 +19,8 @@ def process_movie(src, dst):
 
     white_clip.write_videofile(dst, audio=False)
 
-# src_fname = "../project_video.mp4"
-# dst_fname = 'output_movie/project_video.mp4'
-src_fname = "../challenge_video.mp4"
-dst_fname = 'output_movie/challenge_video.mp4'
+src_fname = "../project_video.mp4"
+dst_fname = 'output_movie/project_video.mp4'
+# src_fname = "../challenge_video.mp4"
+# dst_fname = 'output_movie/challenge_video.mp4'
 process_movie(src_fname, dst_fname)
