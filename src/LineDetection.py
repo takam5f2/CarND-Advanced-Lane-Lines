@@ -214,3 +214,11 @@ if __name__ == '__main__':
         plt.savefig(outfile)
 
     
+        outfile = './detect/edge_highlight_{}.png'.format(idx)
+        f, ax = plt.subplots(1,1,figsize=(30, 12))
+        f.tight_layout()
+        ax.imshow(ldet_img)
+        ax.set_title('Edge Detection Image', fontsize=30)
+        plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.0)
+        plt.savefig(outfile)
+        

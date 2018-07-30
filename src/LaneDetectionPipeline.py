@@ -70,6 +70,20 @@ def get_lane_curvature(binary_warped, leftpoly, rightpoly):
     lane_curvature.set_plot(binary_warped, ploty, lane_fitx)
     return lane_curvature.curverad_real
 
+def get_distance_to_center(binary_warped, leftpoly, rightpoly):
+    ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
+    center_of_lane_pix = (leftpoly.deduce(max(ploty)) + rightpoly.deduce(max(ploty))) / 2
+    distance_to_center = center_of_lane_pix - (binary_warped.shape[1] / 2)
+    distance_to_center *= 3.7/700 # real value
+    side = ""
+    if distance_to_center < 0:
+        side = "left"
+    elif distance_to_center > 0:
+        side = "right"
+    else:
+        side = "center"
+    return side, abs(distance_to_center)
+
 class LaneDetectionPipeline(object):
     """
     this is the pipeline for detecting lane
@@ -125,8 +139,13 @@ class LaneDetectionPipeline(object):
         # add curvature information to image
         # calculates center of lane's curvature
         curvature = get_lane_curvature(result, leftpoly, rightpoly)
-        curvature_disp = "Curvature: {}".format(curvature)
-        cv2.putText(result, curvature_disp, (200, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), thickness=2)
+        curve_msg = "Radius of Curvature: {} (m)".format(curvature)
+        side, center_of_lane = get_distance_to_center(result, leftpoly, rightpoly)
+        dist_msg = "Vehicle is {} m {} of center".format(center_of_lane, side)
+        
+        cv2.putText(result, curve_msg, (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), thickness=2)
+        cv2.putText(result, dist_msg, (100, 150), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), thickness=2)
+
         return result
         
     def process_image_pic(self, src_img):
