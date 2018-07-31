@@ -76,9 +76,9 @@ def get_distance_to_center(binary_warped, leftpoly, rightpoly):
     distance_to_center = center_of_lane_pix - (binary_warped.shape[1] / 2)
     distance_to_center *= 3.7/700 # real value
     side = ""
-    if distance_to_center < 0:
+    if distance_to_center > 0:
         side = "left"
-    elif distance_to_center > 0:
+    elif distance_to_center < 0:
         side = "right"
     else:
         side = "center"
